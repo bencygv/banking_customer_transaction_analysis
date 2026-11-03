@@ -396,3 +396,51 @@ GROUP BY loan_id
 ORDER BY total_repayment DESC
 LIMIT 10;
 
+-- ============================================================
+-- 5. CARD ANALYSIS
+-- ============================================================
+
+-- What is the distribution of cards by type?
+
+SELECT
+    type,
+    COUNT(*) AS number_of_cards
+FROM cards
+GROUP BY type
+ORDER BY number_of_cards DESC;
+
+-- What is the distribution of cards by status?
+
+SELECT
+    status,
+    COUNT(*) AS number_of_cards
+FROM cards
+GROUP BY status
+ORDER BY number_of_cards DESC;
+
+-- What is the total number and value of transfers between accounts?
+
+SELECT
+    COUNT(*) AS total_transfers,
+    ROUND(SUM(amount), 2) AS total_transfer_value
+FROM transfers;
+
+-- Which accounts send the most money through transfers?
+
+SELECT
+    source_account_id,
+    ROUND(SUM(amount), 2) AS total_amount_sent
+FROM transfers
+GROUP BY source_account_id
+ORDER BY total_amount_sent DESC
+LIMIT 10;
+
+-- Which accounts receive the most money through transfers?
+
+SELECT
+    destination_account_id,
+    ROUND(SUM(amount), 2) AS total_amount_received
+FROM transfers
+GROUP BY destination_account_id
+ORDER BY total_amount_received DESC
+LIMIT 10;
