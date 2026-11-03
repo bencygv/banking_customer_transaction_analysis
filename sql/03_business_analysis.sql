@@ -291,3 +291,108 @@ ORDER BY ba.state, ba.city;
 -- 4. LOAN ANALYSIS
 -- ============================================================
 
+-- What is the overall loan portfolio?
+
+SELECT
+    COUNT(*) AS total_loans,
+    ROUND(SUM(amount), 2) AS total_loan_amount,
+    ROUND(AVG(amount), 2) AS average_loan_amount
+FROM loans;
+
+-- What is the distribution of loans by status?
+
+SELECT
+    status,
+    COUNT(*) AS number_of_loans
+FROM loans
+GROUP BY status
+ORDER BY number_of_loans DESC;
+
+-- What percentage of loans are defaulted?
+
+SELECT
+    ROUND(COUNT(*) FILTER (WHERE status = 'defaulted') * 100.0 / COUNT(*),2) AS defaulted_loan_percentage
+FROM loans;
+
+-- What is the average interest rate by loan status?
+
+SELECT
+    status,
+    ROUND(AVG(interest_rate), 2) AS average_interest_rate
+FROM loans
+GROUP BY status
+ORDER BY average_interest_rate DESC;
+
+-- How much principal and interest has been repaid?
+
+SELECT
+    ROUND(SUM(principal_paid), 2) AS total_principal_paid,
+    ROUND(SUM(interest_paid), 2) AS total_interest_paid
+FROM loan_payments;
+
+-- How much loan principal remains outstanding?
+
+SELECT
+    ROUND(
+        SUM(l.amount - COALESCE(lp.total_principal_paid, 0)), 2
+    ) AS outstanding_principal
+FROM loans l
+LEFT JOIN (
+    SELECT
+        loan_id,
+        SUM(principal_paid) AS total_principal_paid
+    FROM loan_payments
+    GROUP BY loan_id
+) lp
+    ON l.id = lp.loan_id;
+
+-- Which branches have the highest total loan amounts?
+
+SELECT
+    b.id AS branch_id,
+    b.name AS branch_name,
+    COUNT(l.id) AS number_of_loans,
+    ROUND(SUM(l.amount), 2) AS total_loan_amount
+FROM branches b
+JOIN loans l
+    ON b.id = l.branch_id
+GROUP BY b.id
+ORDER BY total_loan_amount DESC;
+
+-- Which branches have the most defaulted loans?
+
+SELECT
+    b.id AS branch_id,
+    b.name AS branch_name,
+    COUNT(l.id) AS number_of_defaulted_loans
+FROM branches b
+JOIN loans l
+    ON b.id = l.branch_id
+WHERE l.status = 'defaulted'
+GROUP BY b.id
+ORDER BY number_of_defaulted_loans DESC;
+
+-- Which customers have the largest individual loans?
+
+SELECT
+    c.id AS customer_id,
+    c.first_name,
+    c.last_name,
+    l.id AS loan_id,
+    l.amount AS loan_amount
+FROM customers c
+JOIN loans l
+    ON c.id = l.customer_id
+ORDER BY l.amount DESC
+LIMIT 10;
+
+-- Which loans have received the highest total repayments?
+
+SELECT
+    loan_id,
+    ROUND(SUM(amount), 2) AS total_repayment
+FROM loan_payments
+GROUP BY loan_id
+ORDER BY total_repayment DESC
+LIMIT 10;
+
