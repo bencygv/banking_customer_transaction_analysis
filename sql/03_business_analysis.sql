@@ -174,7 +174,7 @@ ORDER BY transaction_month;
 SELECT
     DATE_TRUNC('month', timestamp) AS transaction_month,
     type,
-    COUNT(*) AS transaction_count,
+    COUNT(*) AS transaction_count
 FROM transactions
 WHERE type IN ('deposit', 'withdrawal')
 GROUP BY transaction_month, type
@@ -210,3 +210,84 @@ JOIN transactions t
     ON a.id = t.account_id
 GROUP BY a.type
 ORDER BY average_transaction_amount DESC;
+
+-- ============================================================
+-- 3. BRANCH ANALYSIS
+-- ============================================================
+
+-- How many branches does the bank have?
+
+SELECT COUNT(*) AS total_branches
+FROM branches;
+
+-- How many accounts does each branch manage?
+
+SELECT
+    b.id AS branch_id,
+    b.name AS branch_name,
+    COUNT(a.id) AS number_of_accounts
+FROM branches b
+JOIN accounts a
+    ON b.id = a.branch_id
+GROUP BY
+    b.id,
+    b.name
+ORDER BY number_of_accounts DESC;
+
+-- Which branches hold the highest total account balances?
+
+SELECT
+    b.id AS branch_id,
+    b.name AS branch_name,
+    ROUND(SUM(a.balance), 2) AS total_account_balance
+FROM branches b
+JOIN accounts a
+    ON b.id = a.branch_id
+GROUP BY b.id
+ORDER BY total_account_balance DESC;
+
+-- Which branches have the highest number of transactions?
+
+SELECT
+    b.id AS branch_id,
+    b.name AS branch_name,
+    COUNT(t.id) AS number_of_transactions
+FROM branches b
+JOIN accounts a
+    ON b.id = a.branch_id
+JOIN transactions t
+    ON a.id = t.account_id
+GROUP BY b.id
+ORDER BY number_of_transactions DESC;
+
+-- Which branches have the highest total transaction value?
+
+SELECT
+    b.id AS branch_id,
+    b.name AS branch_name,
+    ROUND(SUM(t.amount), 2) AS total_transaction_value
+FROM branches b
+JOIN accounts a
+    ON b.id = a.branch_id
+JOIN transactions t
+    ON a.id = t.account_id
+GROUP BY b.id
+ORDER BY total_transaction_value DESC;
+
+-- Where are the bank's branches geographically located?
+
+SELECT
+    b.id AS branch_id,
+    b.name AS branch_name,
+    ba.city,
+    ba.state,
+    ba.country
+FROM branches b
+JOIN branch_addresses ba
+    ON b.id = ba.branch_id
+ORDER BY ba.state, ba.city;
+
+-- ============================================================
+-- 4. LOAN ANALYSIS
+-- ============================================================
+
