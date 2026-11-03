@@ -123,3 +123,90 @@ SELECT
 FROM accounts
 ORDER BY balance DESC
 LIMIT 10;
+
+-- Which cities have the most customers?
+
+SELECT
+    city,
+    state,
+    country,
+    COUNT(*) AS number_of_customers
+FROM addresses
+GROUP BY city, state, country
+ORDER BY number_of_customers DESC
+LIMIT 10;
+
+-- ============================================================
+-- 2. TRANSACTION ANALYSIS
+-- ============================================================
+
+-- What is the overall transaction activity?
+
+SELECT
+    COUNT(*) AS total_transactions,
+    ROUND(SUM(amount),2) AS total_transaction_amount,
+    ROUND(AVG(amount),2) AS average_transaction_amount
+FROM transactions;
+
+-- How is transaction activity distributed by transaction type?
+
+SELECT
+    type,
+    COUNT(*) AS transaction_count,
+    ROUND(SUM(amount),2) AS total_amount,
+    ROUND(AVG(amount),2) AS average_amount
+FROM transactions
+GROUP BY type
+ORDER BY total_amount DESC;
+
+-- How does transaction activity change over time by month?
+
+SELECT
+    DATE_TRUNC('month', timestamp) AS transaction_month,
+    COUNT(*) AS transaction_count,
+    ROUND(SUM(amount),2) AS total_transaction_amount
+FROM transactions
+GROUP BY transaction_month
+ORDER BY transaction_month;
+
+-- How do deposits and withdrawals change over time by month?
+
+SELECT
+    DATE_TRUNC('month', timestamp) AS transaction_month,
+    type,
+    COUNT(*) AS transaction_count,
+FROM transactions
+WHERE type IN ('deposit', 'withdrawal')
+GROUP BY transaction_month, type
+ORDER BY transaction_month, type;
+
+-- Which accounts have the highest transaction activity?
+
+SELECT
+    account_id,
+    COUNT(*) AS transaction_count
+FROM transactions
+GROUP BY account_id
+ORDER BY transaction_count DESC
+LIMIT 10;
+
+-- Which accounts have the highest total transaction value?
+
+SELECT
+    account_id,
+    ROUND(SUM(amount), 2) AS total_transaction_amount
+FROM transactions
+GROUP BY account_id
+ORDER BY total_transaction_amount DESC
+LIMIT 10;
+
+-- What is the average transaction amount by account type?
+
+SELECT
+    a.type AS account_type,
+    ROUND(AVG(t.amount), 2) AS average_transaction_amount
+FROM accounts a
+JOIN transactions t
+    ON a.id = t.account_id
+GROUP BY a.type
+ORDER BY average_transaction_amount DESC;
